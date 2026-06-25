@@ -515,13 +515,8 @@ function initFormSubmit() {
       mfgYear:         ($('#mfg-year')         || {}).value || '',
     }));
 
-    /* محاكاة تحميل ثم انتقال */
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'جاري البحث عن أفضل العروض...';
-
-    setTimeout(() => {
-      window.location.href = 'submit-inquiry.html';
-    }, 900);
+    /* انتقال مباشر بدون إشعار — الإشعار يظهر في الصفحة التالية */
+    window.location.href = 'submit-inquiry.html';
   });
 }
 

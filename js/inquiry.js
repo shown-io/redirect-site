@@ -584,12 +584,12 @@ function initFormSubmit() {
     }));
 
     btn.disabled = true;
-    btn.textContent = 'جاري إظهار العروض...';
+    btn.textContent = 'جاري البحث عن أفضل العروض...';
     setTimeout(() => {
       btn.disabled = false;
       btn.textContent = 'إظهار العروض';
       alert('سيتم عرض عروض شركات التأمين هنا قريباً!');
-    }, 900);
+    }, 1500);
   });
 }
 
