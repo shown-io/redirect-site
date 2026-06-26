@@ -24,8 +24,8 @@
   <style>
     :root { --primary:#1a6f4b; --secondary:#0f4c3a; --accent:#f4a261; --bg:#f8faf9; --text:#2d3436; --light:#ffffff; }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:var(--bg); color:var(--text); line-height:1.9; }
-    header { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; padding:3rem 1rem; text-align:center; }
+    body { font-family:-apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:var(--bg); color:var(--text); line-height:1.9; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    header { background:-webkit-linear-gradient(135deg,var(--primary),var(--secondary)); background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; padding:3rem 1rem; text-align:center; }
     header h1 { font-size:2.2rem; margin-bottom:.8rem; }
     header p { font-size:1.1rem; opacity:.95; max-width:700px; margin:auto; }
     .container { max-width:850px; margin:auto; padding:2rem 1.5rem; }
@@ -43,6 +43,8 @@
     .company-card { background:#fff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.06); padding:1.5rem; margin:1.5rem 0; border-right:4px solid var(--primary); transition:transform .2s; }
     .company-card:hover { transform:translateY(-3px); }
     .company-card h3 { margin-top:0; display:flex; align-items:center; gap:.6rem; }
+    .company-card h3 .badge { margin-right:.6rem; }
+    @supports not (gap: 0.6rem) { .company-card h3 .badge { margin-right:.6rem; } }
     .badge { background:var(--accent); color:#fff; font-size:.7rem; padding:.15rem .55rem; border-radius:20px; vertical-align:middle; }
     .cta-btn { display:inline-block; background:var(--primary); color:#fff; padding:.65rem 1.4rem; border-radius:6px; text-decoration:none; font-weight:600; margin-top:.8rem; }
     .cta-btn:hover { background:var(--secondary); }
@@ -51,17 +53,24 @@
     .cons { background:#fdf2f2; }
     .pros h4, .cons h4 { margin-bottom:.5rem; font-size:.95rem; }
     .pros ul, .cons ul { padding-right:1.2rem; font-size:.9rem; }
-    table { width:100%; border-collapse:collapse; margin:1.5rem 0; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:1.5rem 0; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.04); min-width:500px; }
     th, td { padding:1rem; text-align:right; border-bottom:1px solid #eee; }
     th { background:var(--primary); color:#fff; }
     tr:last-child td { border-bottom:none; }
-    .highlight-box { background:linear-gradient(135deg,#e8f5e9,#fff); border:1px solid #c8e6c9; border-radius:8px; padding:1.2rem; margin:2rem 0; }
+    .highlight-box { background:-webkit-linear-gradient(135deg,#e8f5e9,#fff); background:linear-gradient(135deg,#e8f5e9,#fff); border:1px solid #c8e6c9; border-radius:8px; padding:1.2rem; margin:2rem 0; }
     .highlight-box strong { color:var(--secondary); }
     footer { background:var(--secondary); color:#fff; text-align:center; padding:2rem 1rem; margin-top:3rem; font-size:.9rem; }
     footer a { color:#a8e6cf; text-decoration:none; }
     @media (max-width:600px){
       .pros-cons { grid-template-columns:1fr; }
       header h1 { font-size:1.6rem; }
+      header p { font-size:1rem; }
+      article h2 { font-size:1.35rem; }
+      article h3 { font-size:1.1rem; }
+      .container { padding:1.5rem 1rem; }
+      .company-card { padding:1rem; }
+      th, td { padding:.7rem .5rem; font-size:.85rem; }
     }
   </style>
 </head>
@@ -303,6 +312,7 @@
     </div>
 
     <h2 id="compare">جدول مقارنة سريع</h2>
+    <div class="table-wrap">
     <table>
       <thead>
         <tr>
@@ -345,6 +355,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <h2 id="faq">أسئلة شائعة</h2>
     <h3>ما هو الفرق بين التأمين ضد الغير والشامل؟</h3>
