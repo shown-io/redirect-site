@@ -441,8 +441,8 @@ function checkCustomsNumber() {
     showFieldError('customs-number', 'الرقم الجمركي مطلوب');
     return false;
   }
-  if (val.length < 17 || val.length > 19) {
-    showFieldError('customs-number', 'الرقم الجمركي غير صحيح — يجب أن يكون 17 إلى 19 رقم');
+  if (val.length < 8 || val.length > 10) {
+    showFieldError('customs-number', 'الرقم الجمركي غير صحيح — يجب أن يكون 8 إلى 10 أرقام');
     return false;
   }
   clearFieldError('customs-number');

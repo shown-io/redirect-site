@@ -411,6 +411,10 @@ input,select{font-family:var(--font);direction:rtl}
 
 /* ─── صف البطاقة الجمركية — حقول متقاربة ────────── */
 #field-customs-row.form-row { gap: .5rem; }
+#field-customs-row .form-label { font-size: .78rem; }
+#field-customs-row .form-input { padding: .5rem .7rem; font-size: max(.8rem,14px); }
+#field-customs-row .form-select { padding-left: 1.8rem; }
+#field-customs-row .select-chevron { font-size: 1rem; }
 
 /* ─── أيقونة info + tooltip ─────────────────────── */
 .info-icon{
