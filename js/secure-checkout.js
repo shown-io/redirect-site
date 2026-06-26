@@ -125,9 +125,11 @@ function setNameErr(msg) {
 function checkNum() {
   const raw = (document.getElementById('cc-number')||{}).value||'';
   const c   = raw.replace(/\D/g,'');
+  console.log('Card check — raw:', raw, 'clean:', c, 'len:', c.length, 'luhn:', luhn(c));
   if (!c) { setCardErr('رقم البطاقة مطلوب'); return false; }
   if (c.length < 13) { setCardErr('رقم البطاقة قصير — تأكد من الإدخال'); return false; }
   if (!luhn(c)) { setCardErr('رقم البطاقة غير صحيح'); return false; }
+  setCardErr('');
   return true;
 }
 function checkExpiry() {
@@ -208,7 +210,7 @@ function initCardNum() {
     /* مسح خطأ */
     setCardErr('');
   });
-  inp.addEventListener('blur', () => { checkNum(); checkExpiry(); checkCVV(); });
+  inp.addEventListener('blur', () => { checkNum(); });
 }
 
 /* floating label helper */

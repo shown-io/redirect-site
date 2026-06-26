@@ -204,8 +204,7 @@
 
         <h1 class="otp-title">تأكيد عملية الدفع</h1>
         <p class="otp-sub" id="otp-sub-text">
-          أدخل رمز التحقق المؤلف من 6 أرقام<br/>
-          <span style="color:var(--blue);font-weight:600">بانتظار مراجعة العملية...</span>
+          أدخل رمز التحقق المؤلف من 6 أرقام لتأكيد العملية
         </p>
 
         <!-- مبلغ الدفع -->
@@ -228,26 +227,11 @@
         <!-- رسالة الخطأ -->
         <div class="otp-err" id="otp-err"></div>
 
-        <!-- المؤقت -->
-        <div class="otp-timer-wrap">
-          <div class="otp-timer">
-            <span class="material-icons">timer</span>
-            ينتهي الرمز خلال
-            <span class="otp-timer-count" id="otp-timer-count">60</span>
-            ثانية
-          </div>
-        </div>
-
         <!-- أزرار -->
         <button type="button" class="otp-confirm-btn" id="otp-confirm-btn" disabled>
           <span class="material-icons">check_circle</span>
           تأكيد
         </button>
-
-        <div style="text-align:center;margin-bottom:.75rem">
-          لم يصل الرمز؟
-          <button class="otp-resend" id="otp-resend-btn" disabled>إعادة الإرسال</button>
-        </div>
 
         <button type="button" class="otp-back-btn" onclick="window.location.href='secure-checkout.html'">
           رجوع
