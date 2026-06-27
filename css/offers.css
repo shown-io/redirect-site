@@ -327,6 +327,134 @@
   .off-row-3 { grid-template-columns: 1fr; }
 }
 
+/* ─── أيقونة حقل + wrapper ────────────────────────── */
+.pd-input-icon-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.pd-input-icon {
+  position: absolute; left: .75rem; top: 50%; transform: translateY(-50%);
+  color: var(--blue); pointer-events: none; font-size: 1.1rem; opacity: .7;
+}
+.pd-input-icon-wrap .off-input { padding-left: 2.5rem; cursor: pointer; }
+
+/* ─── التقويم الميلادي المخصص ────────────────────── */
+.pd-cal-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: pdFadeIn .15s ease;
+}
+.pd-cal-overlay.hidden { display: none; }
+@keyframes pdFadeIn { from { opacity:0 } to { opacity:1 } }
+
+.pd-cal-picker {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  width: 100%; max-width: 360px;
+  padding: 1.25rem 1rem 1rem;
+  direction: ltr;
+  font-family: 'Roboto','Readex Pro',sans-serif;
+  animation: pdSlideUp .18s ease;
+}
+@keyframes pdSlideUp { from { transform: translateY(12px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+
+.pd-cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.pd-cal-nav-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  font-size: 1.5rem; color: #555;
+  border-radius: 50%; transition: background .15s; line-height: 1;
+}
+.pd-cal-nav-btn:hover { background: #f0f4f8; }
+
+.pd-cal-title-btn {
+  font-size: .95rem; font-weight: 700; color: #1e293b;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; gap: .3rem;
+  border-radius: 6px; padding: .25rem .5rem;
+  transition: background .15s; font-family: inherit;
+}
+.pd-cal-title-btn:hover { background: #f0f4f8; }
+.pd-cal-title-arrow { font-size: .7rem; color: #64748b; }
+
+.pd-cal-weekdays {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  margin-bottom: .35rem;
+}
+.pd-cal-wday {
+  text-align: center; font-size: .78rem; font-weight: 600;
+  color: #64748b; padding: .25rem 0;
+}
+.pd-cal-days-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px }
+
+.pd-cal-month-name {
+  text-align: right;
+  font-size: .78rem; font-weight: 600; color: #94a3b8;
+  letter-spacing: .06em; margin-bottom: .4rem;
+  padding-right: .25rem;
+}
+
+.pd-cal-day {
+  display: flex; align-items: center; justify-content: center;
+  height: 38px; font-size: .88rem; color: #1e293b;
+  border-radius: 50%; cursor: pointer;
+  border: none; background: none;
+  font-family: inherit;
+  transition: background .12s, color .12s;
+  width: 100%;
+}
+.pd-cal-day:hover:not(.pd-cal-day--empty):not(.pd-cal-day--disabled):not(.pd-cal-day--selected) {
+  background: #f0f4f8;
+}
+.pd-cal-day--today { border: 1.5px solid #94a3b8; font-weight: 600; }
+.pd-cal-day--selected {
+  background: var(--blue) !important;
+  color: #fff !important; font-weight: 700;
+  border: none !important; border-radius: 50px !important;
+}
+.pd-cal-day--empty { cursor: default; pointer-events: none; }
+.pd-cal-day--disabled { color: #cbd5e1; cursor: not-allowed; }
+
+.pd-cal-months-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: .5rem; padding: .5rem 0;
+}
+.pd-cal-year-label {
+  text-align: right; font-size: .85rem; font-weight: 600;
+  color: #1e293b; margin-bottom: .5rem; padding-right: .25rem;
+}
+.pd-cal-month-btn {
+  padding: .55rem .2rem; font-size: .82rem; font-weight: 500;
+  color: #64748b; border: none; background: none; cursor: pointer;
+  border-radius: 8px; text-align: center;
+  transition: background .12s, color .12s; font-family: inherit;
+}
+.pd-cal-month-btn:hover { background: #f0f4f8; color: #1e293b; }
+.pd-cal-month-btn.active { background: var(--blue); color: #fff; font-weight: 700; border-radius: 50px; }
+
+.pd-cal-years-range {
+  text-align: right; font-size: .82rem; font-weight: 600;
+  color: #64748b; margin-bottom: .5rem; padding-right: .25rem;
+}
+.pd-cal-years-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: .5rem; padding: .25rem 0;
+}
+.pd-cal-year-btn {
+  padding: .55rem .2rem; font-size: .88rem; font-weight: 400;
+  color: #64748b; border: none; background: none; cursor: pointer;
+  border-radius: 8px; text-align: center;
+  transition: background .12s, color .12s; font-family: inherit;
+}
+.pd-cal-year-btn:hover { background: #f0f4f8; color: #1e293b; }
+.pd-cal-year-btn.active { background: var(--blue); color: #fff; font-weight: 700; border-radius: 50px; }
+
 /* ─── offers.html فقط — عرض واسع ────────────────── */
 .offers-wide-container {
   width: 100%; max-width: 600px;

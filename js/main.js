@@ -619,7 +619,7 @@ function initFormSubmit() {
     }));
 
     /* انتقال مباشر بدون إشعار — الإشعار يظهر في الصفحة التالية */
-    window.location.href = 'submit-inquiry.html';
+    window.location.href = 'policy-details.html';
   });
 }
 
