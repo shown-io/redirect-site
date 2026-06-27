@@ -11,34 +11,34 @@
 .stepper-wrap {
   width: 100%; max-width: 560px;
   margin: 0 auto;
-  padding: clamp(.6rem,2.5vw,.9rem) clamp(.75rem,4vw,1rem) 0;
+  padding: clamp(.5rem,2vw,.7rem) clamp(.6rem,3vw,.85rem) 0;
 }
 .stepper {
   display: flex; align-items: flex-start;
 }
 .stepper-step {
   display: flex; flex-direction: column; align-items: center;
-  gap: .3rem; flex-shrink: 0; text-decoration: none;
+  gap: .2rem; flex-shrink: 0; text-decoration: none;
 }
 .stepper-num {
-  width: 38px; height: 38px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: .9rem; font-weight: 700;
+  font-size: .82rem; font-weight: 700;
   transition: var(--trans);
   font-family: var(--font);
 }
 .stepper-lbl {
-  font-size: .72rem; font-weight: 600;
-  text-align: center; line-height: 1.35;
+  font-size: .65rem; font-weight: 600;
+  text-align: center; line-height: 1.3;
   white-space: nowrap;
 }
 .stepper-line {
   flex: 1;
-  height: 3px;
+  height: 2px;
   background: var(--gray-300);
-  margin-top: 17px;
-  min-width: 24px;
+  margin-top: 16px;
+  min-width: 16px;
   border-radius: 2px;
 }
 /* الخطوة المنجزة */
@@ -51,7 +51,7 @@
 /* الخطوة الحالية */
 .stepper-current .stepper-num {
   background: #155f93; color: var(--white);
-  box-shadow: 0 0 0 4px rgba(21,95,147,.18);
+  box-shadow: 0 0 0 3px rgba(21,95,147,.18);
 }
 .stepper-current .stepper-lbl { color: #155f93; font-weight: 700; }
 /* الخطوة القادمة */
@@ -61,13 +61,14 @@
 .stepper-upcoming .stepper-lbl { color: var(--gray-400); }
 
 @media (max-width:480px) {
-  .stepper-lbl { font-size: .65rem; }
-  .stepper-num { width: 34px; height: 34px; font-size: .82rem; }
-  .stepper-line { margin-top: 15px; min-width: 16px; }
+  .stepper-num { width: 30px; height: 30px; font-size: .72rem; }
+  .stepper-lbl { font-size: .52rem; white-space: normal; max-width: 55px; }
+  .stepper-line { margin-top: 13px; min-width: 10px; }
 }
 @media (max-width:360px) {
-  .stepper-lbl { font-size: .55rem; }
-  .stepper-num { width: 30px; height: 30px; font-size: .75rem; }
+  .stepper-num { width: 26px; height: 26px; font-size: .65rem; }
+  .stepper-lbl { font-size: .48rem; max-width: 45px; }
+  .stepper-line { margin-top: 11px; min-width: 6px; }
 }
 
 .off-main {
@@ -87,64 +88,65 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: .75rem;
 }
 .off-card-header {
   background: #155f93;
-  padding: .55rem 1rem;
-  display: flex; align-items: center; gap: .4rem;
+  padding: .45rem .85rem;
+  display: flex; align-items: center; gap: .35rem;
 }
 .off-card-title {
-  color: var(--white); font-size: clamp(.82rem,2vw,.92rem);
+  color: var(--white); font-size: clamp(.78rem,2vw,.88rem);
   font-weight: 700; margin: 0;
 }
-.off-card-body { padding: clamp(.75rem,2.5vw,1rem); }
+.off-card-body { padding: clamp(.65rem,2vw,.9rem); }
 
 /* ─── حقول النموذج ───────────────────────────────── */
-.off-form { display: flex; flex-direction: column; gap: .75rem; }
-.off-group { display: flex; flex-direction: column; gap: .2rem; }
+.off-form { display: flex; flex-direction: column; gap: .65rem; }
+.off-group { display: flex; flex-direction: column; gap: .18rem; }
 .off-label {
-  font-size: .82rem; font-weight: 600;
+  font-size: .78rem; font-weight: 700;
   color: #155f93; text-align: right;
 }
 .off-input {
-  width: 100%; padding: .6rem .875rem;
+  width: 100%; padding: .5rem .75rem;
   border: 1.5px solid var(--border);
   border-radius: var(--r-sm);
-  font-size: max(.875rem,16px); font-family: var(--font);
-  color: var(--gray-800); background: var(--white);
+  font-size: .8rem; font-family: var(--font);
+  color: var(--gray-500); background: var(--white);
   outline: none; direction: rtl; text-align: right;
   -webkit-appearance: none; appearance: none;
   transition: border-color .2s, box-shadow .2s;
+  line-height: 1.4;
 }
-.off-input:focus { border-color: #155f93; box-shadow: 0 0 0 3px rgba(21,95,147,.10); }
+.off-input:focus { border-color: #155f93; box-shadow: 0 0 0 3px rgba(21,95,147,.10); color: var(--gray-800); }
 .off-input.off-err { border-color: var(--red) !important; background: var(--red-bg) !important; }
-.off-input::placeholder { color: var(--gray-400); }
-.off-input[readonly] { background: var(--gray-50); color: var(--gray-500); cursor: default; }
+.off-input::placeholder { color: var(--gray-400); font-size: .75rem; }
+.off-input[readonly] { background: var(--gray-50); color: var(--gray-400); cursor: default; }
 
 /* ─── Select wrapper ─────────────────────────────── */
 .off-select-wrap { position: relative; }
-.off-select { padding-left: 2rem; cursor: pointer; }
+.off-select { padding-left: 1.8rem; cursor: pointer; font-size: .8rem; }
 .off-sel-arrow {
-  position: absolute; left: .5rem; top: 50%; transform: translateY(-50%);
-  color: #155f93; pointer-events: none; font-size: 1.1rem; opacity: .6;
+  position: absolute; left: .4rem; top: 50%; transform: translateY(-50%);
+  color: #155f93; pointer-events: none; font-size: .95rem; opacity: .6;
 }
 
 /* ─── صف عناصر (مثل تاريخ الميلاد 3 أعمدة) ──────── */
-.off-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; }
-.off-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.off-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .35rem; }
+.off-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
 
 /* ─── رسالة الخطأ ────────────────────────────────── */
 .off-error {
-  font-size: .76rem; font-weight: 600;
-  color: var(--red); min-height: .85rem; line-height: 1.3;
+  font-size: .7rem; font-weight: 600;
+  color: var(--red); min-height: .75rem; line-height: 1.3;
 }
 
 /* ─── راديو مكان الإصلاح ─────────────────────────── */
-.off-radio-group { display: flex; flex-direction: column; gap: .45rem; }
+.off-radio-group { display: flex; flex-direction: column; gap: .35rem; }
 .off-radio-opt {
   display: flex; align-items: center; justify-content: space-between;
-  padding: .65rem 1rem;
+  padding: .55rem .85rem;
   border: 1.5px solid var(--border);
   border-radius: var(--r-sm);
   cursor: pointer; transition: var(--trans);
@@ -152,16 +154,16 @@
 .off-radio-opt:hover { border-color: #155f93; }
 .off-radio-opt.selected { border-color: #155f93; background: rgba(21,95,147,.04); }
 .off-radio-opt input[type="radio"] {
-  width: 18px; height: 18px; accent-color: #155f93;
+  width: 16px; height: 16px; accent-color: #155f93;
   cursor: pointer; flex-shrink: 0;
 }
-.off-radio-lbl { font-size: .9rem; font-weight: 500; color: var(--gray-800); }
+.off-radio-lbl { font-size: .8rem; font-weight: 500; color: var(--gray-600); }
 
 /* ─── أزرار الصفحات ──────────────────────────────── */
-.off-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .25rem; }
+.off-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .2rem; }
 .off-btn-primary {
-  padding: .75rem 1rem; background: var(--gold); color: var(--white);
-  font-size: .92rem; font-weight: 700;
+  padding: .6rem .8rem; background: var(--gold); color: var(--white);
+  font-size: .82rem; font-weight: 700;
   border-radius: var(--r-sm); border: none; cursor: pointer;
   font-family: var(--font); transition: var(--trans);
   box-shadow: 0 3px 10px rgba(250,166,46,.3);
@@ -169,8 +171,8 @@
 .off-btn-primary:hover { background: var(--gold-dark); transform: translateY(-1px); }
 .off-btn-primary:disabled { background: var(--gray-200); color: var(--gray-400); cursor: not-allowed; box-shadow: none; }
 .off-btn-secondary {
-  padding: .75rem 1rem; background: var(--white); color: var(--gray-600);
-  font-size: .92rem; font-weight: 600;
+  padding: .6rem .8rem; background: var(--white); color: var(--gray-600);
+  font-size: .82rem; font-weight: 600;
   border-radius: var(--r-sm); border: 1.5px solid var(--border);
   cursor: pointer; font-family: var(--font); transition: var(--trans);
 }
@@ -395,10 +397,10 @@
   position: relative; display: flex; align-items: center;
 }
 .pd-input-icon {
-  position: absolute; left: .75rem; top: 50%; transform: translateY(-50%);
-  color: #155f93; pointer-events: none; font-size: 1.1rem; opacity: .7;
+  position: absolute; left: .65rem; top: 50%; transform: translateY(-50%);
+  color: #155f93; pointer-events: none; font-size: .95rem; opacity: .7;
 }
-.pd-input-icon-wrap .off-input { padding-left: 2.5rem; cursor: pointer; }
+.pd-input-icon-wrap .off-input { padding-left: 2.2rem; cursor: pointer; }
 
 /* ─── التقويم الميلادي المخصص ────────────────────── */
 .pd-cal-overlay {
