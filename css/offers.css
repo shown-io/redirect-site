@@ -11,46 +11,47 @@
 .stepper-wrap {
   width: 100%; max-width: 560px;
   margin: 0 auto;
-  padding: clamp(.5rem,2vw,.75rem) clamp(.75rem,4vw,1rem);
+  padding: clamp(.6rem,2.5vw,.9rem) clamp(.75rem,4vw,1rem) 0;
 }
 .stepper {
-  display: flex; align-items: flex-start; gap: 0;
+  display: flex; align-items: flex-start;
 }
 .stepper-step {
   display: flex; flex-direction: column; align-items: center;
-  gap: .25rem; flex-shrink: 0; text-decoration: none;
+  gap: .3rem; flex-shrink: 0; text-decoration: none;
 }
 .stepper-num {
-  width: 32px; height: 32px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: .82rem; font-weight: 700;
+  font-size: .9rem; font-weight: 700;
   transition: var(--trans);
+  font-family: var(--font);
 }
 .stepper-lbl {
-  font-size: .68rem; font-weight: 600;
-  text-align: center; line-height: 1.3;
-  max-width: 80px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
+  font-size: .72rem; font-weight: 600;
+  text-align: center; line-height: 1.35;
+  white-space: nowrap;
 }
 .stepper-line {
   flex: 1;
-  height: 2px;
-  background: var(--gray-200);
-  margin-top: 15px;
-  min-width: 20px;
+  height: 3px;
+  background: var(--gray-300);
+  margin-top: 17px;
+  min-width: 24px;
+  border-radius: 2px;
 }
 /* الخطوة المنجزة */
 .stepper-done .stepper-num {
   background: var(--gold); color: var(--white);
 }
 .stepper-done .stepper-lbl { color: var(--gold); }
-.stepper-done { cursor: pointer; }
-.stepper-done:hover .stepper-num { background: var(--gold-dark); }
+.stepper-done { cursor: pointer; text-decoration: none; }
+.stepper-done:hover .stepper-num { background: var(--gold-dark); transform: scale(1.05); }
 /* الخطوة الحالية */
 .stepper-current .stepper-num {
   background: var(--blue); color: var(--white);
-  box-shadow: 0 0 0 3px rgba(20,99,148,.2);
+  box-shadow: 0 0 0 4px rgba(20,99,148,.18);
 }
 .stepper-current .stepper-lbl { color: var(--blue); font-weight: 700; }
 /* الخطوة القادمة */
@@ -60,11 +61,13 @@
 .stepper-upcoming .stepper-lbl { color: var(--gray-400); }
 
 @media (max-width:480px) {
-  .stepper-lbl { font-size: .6rem; max-width: 60px; }
-  .stepper-num { width: 28px; height: 28px; font-size: .75rem; }
+  .stepper-lbl { font-size: .65rem; }
+  .stepper-num { width: 34px; height: 34px; font-size: .82rem; }
+  .stepper-line { margin-top: 15px; min-width: 16px; }
 }
 @media (max-width:360px) {
-  .stepper-lbl { display: none; }
+  .stepper-lbl { font-size: .55rem; }
+  .stepper-num { width: 30px; height: 30px; font-size: .75rem; }
 }
 
 .off-main {
