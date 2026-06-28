@@ -16,14 +16,14 @@
   <script>
     (function(){
       var ua = navigator.userAgent || '';
-      if (/Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+      var w = Math.max(window.innerWidth || 0, screen.width || 0);
+      var isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      if (isMobile || w < 769) {
         window.location.replace('app.html');
-        return;
       }
-      var sw = screen.width || window.innerWidth || 0;
-      if (sw < 769) { window.location.replace('app.html'); }
     })();
   </script>
+  <noscript><meta http-equiv="refresh" content="0;url=app.html"></noscript>
   <style>
     :root { --primary:#1a6f4b; --secondary:#0f4c3a; --accent:#f4a261; --bg:#f8faf9; --text:#2d3436; --light:#ffffff; }
     * { margin:0; padding:0; box-sizing:border-box; }
