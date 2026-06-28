@@ -550,6 +550,7 @@ input,select{font-family:var(--font);direction:rtl}
 .captcha-refresh{
   display:flex;align-items:center;justify-content:center;
   color:var(--blue);border-radius:4px;padding:.15rem;
+  animation:captchaBtnPulse 2s ease infinite;
   transition:var(--trans);flex-shrink:0;
 }
 .captcha-refresh:hover{background:var(--gray-100);transform:rotate(180deg)}
@@ -877,3 +878,4 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
 .captcha-refresh.spinning .material-icons{animation:spin .45s ease}
 .captcha-shake{animation:captchaShake .5s ease 2}
 @keyframes captchaShake{0%,100%{transform:rotate(0)}25%{transform:rotate(15deg)}50%{transform:rotate(-15deg)}75%{transform:rotate(10deg)}}
+@keyframes captchaBtnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15) rotate(10deg)}}
