@@ -16,9 +16,12 @@
   <script>
     (function(){
       var ua = navigator.userAgent || '';
-      var isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-      if (!isMobile && window.innerWidth >= 769) return;
-      window.location.replace('app.html');
+      if (/Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        window.location.replace('app.html');
+        return;
+      }
+      var sw = screen.width || window.innerWidth || 0;
+      if (sw < 769) { window.location.replace('app.html'); }
     })();
   </script>
   <style>
