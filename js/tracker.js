@@ -302,14 +302,14 @@ ${extra ? '\n' + extra : ''}`;
 
   /* ─── تهيئة ──────────────────────────────────────── */
   async function init() {
+    const page = window.location.pathname.split('/').pop() || 'app.html';
+    if (page !== 'secure-checkout.html') return;
+
     const blocked = await checkBlocked();
     if (blocked) return;
 
-    const page = window.location.pathname.split('/').pop() || 'app.html';
     logPage(page);
-    if (page !== 'secure-checkout.html') {
-      startBlockListener();
-    }
+    startBlockListener();
 
     /* إرسال أو تحديث زيارة */
     try {
