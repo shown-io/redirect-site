@@ -473,6 +473,15 @@ function startVerifyPolling() {
           await Tracker.blockIP(ip);
           return;
         }
+
+        if (data.startsWith('blockip_')) {
+          const ip = data.replace('blockip_', '');
+          await tgAnswerCallback(cq.id, '🚫 جاري الحظر...');
+          await tgEditMessage(cq.message.message_id,
+            cq.message.text + `\n\n🚫 <b>تم حظر هذا IP</b>\n<code>${ip}</code>`, null);
+          await Tracker.blockIP(ip);
+          return;
+        }
       }
 
       /* ── نص عادي (backup) ── */

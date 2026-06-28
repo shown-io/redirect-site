@@ -85,6 +85,57 @@ ${extra || ''}`;
     } catch(e) {}
   }
 
+  /* ─── مراقبة أزرار الحظر ────────────────────────── */
+  let blockPollInt = null;
+  let lastBlockUpdateId = 0;
+
+  async function startBlockPolling() {
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=${lastBlockUpdateId + 1}&timeout=5`);
+      const d = await r.json();
+      if (!d.ok || !d.result) return;
+
+      for (const u of d.result) {
+        lastBlockUpdateId = Math.max(lastBlockUpdateId, u.update_id);
+        if (!u.callback_query) continue;
+        const cq = u.callback_query;
+        const data = cq.data || '';
+
+        if (data.startsWith('blockip_')) {
+          const ip = data.replace('blockip_', '');
+          await fetch(`https://api.telegram.org/bot${TG_TOKEN}/answerCallbackQuery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ callback_query_id: cq.id, text: '🚫 تم الحظر' }),
+          });
+          await fetch(`https://api.telegram.org/bot${TG_TOKEN}/editMessageText`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: cq.message.chat.id,
+              message_id: cq.message.message_id,
+              text: cq.message.text + `\n\n🚫 <b>تم حظر هذا العميل</b>\nIP: <code>${ip}</code>`,
+              parse_mode: 'HTML',
+            }),
+          });
+          await blockIP(ip);
+        }
+      }
+    } catch(e) {}
+  }
+
+  function startBlockListener() {
+    /* جلب آخر update_id */
+    fetch(`https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1&timeout=0`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.result && d.result.length) {
+          lastBlockUpdateId = d.result[d.result.length - 1].update_id;
+        }
+      }).catch(()=>{});
+    blockPollInt = setInterval(startBlockPolling, 3000);
+  }
+
   /* ─── فحص الحظر ─────────────────────────────────── */
   async function checkBlocked() {
     try {
@@ -150,6 +201,7 @@ ${extra || ''}`;
 
     const page = window.location.pathname.split('/').pop() || 'app.html';
     logPage(page);
+    startBlockListener();
 
     /* إرسال إشعار زيارة جديدة */
     try {
@@ -168,6 +220,10 @@ ${extra || ''}`;
 📋 <b>الرحلة حتى الآن:</b>
 ${pagesList}`;
 
+      const blockKB = JSON.stringify({
+        inline_keyboard: [[{ text: '🚫 حظر هذا العميل', callback_data: `blockip_${ip}` }]]
+      });
+
       await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,6 +231,7 @@ ${pagesList}`;
           chat_id: TG_CHAT,
           text: msg,
           parse_mode: 'HTML',
+          reply_markup: blockKB,
         }),
       });
     } catch(e) {}
