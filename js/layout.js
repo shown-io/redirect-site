@@ -10,15 +10,15 @@ function getHeaderHTML(variant) {
   return `
 <header class="header header--inquiry" id="header">
   <div class="header-inner container">
-    <a href="#" class="btn-lang">
-      <span class="lang-dot-circle"></span>
-      <span>EN</span>
+    <a href="#" class="btn-user" aria-label="دخول / تسجيل">
+      <span class="material-icons">person</span>
     </a>
     <a href="index.html" class="header-logo header-logo--center">
       <img src="assets/images/imgi_1_Bcare-logo.svg" alt="بي كير" />
     </a>
-    <a href="#" class="btn-user" aria-label="دخول / تسجيل">
-      <span class="material-icons">person</span>
+    <a href="#" class="btn-lang">
+      <span class="lang-dot-circle"></span>
+      <span>EN</span>
     </a>
   </div>
 </header>`;
