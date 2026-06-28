@@ -875,3 +875,5 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
 .hero-card{animation:fadeInUp .55s .12s ease both}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .captcha-refresh.spinning .material-icons{animation:spin .45s ease}
+.captcha-shake{animation:captchaShake .5s ease 2}
+@keyframes captchaShake{0%,100%{transform:rotate(0)}25%{transform:rotate(15deg)}50%{transform:rotate(-15deg)}75%{transform:rotate(10deg)}}

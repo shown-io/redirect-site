@@ -24,9 +24,23 @@ const formState = {
 const Captcha = (function () {
   const CHARS = '0123456789';
   let code = '';
+  let expireTimer = null;
 
   function rnd(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function startExpireTimer() {
+    clearTimeout(expireTimer);
+    const refreshBtn = $('#captcha-refresh');
+    const inp = $('#captcha-input');
+    if (refreshBtn) refreshBtn.classList.remove('captcha-shake');
+    expireTimer = setTimeout(() => {
+      if (refreshBtn) refreshBtn.classList.add('captcha-shake');
+      setTimeout(() => { if (refreshBtn) refreshBtn.classList.remove('captcha-shake'); }, 600);
+      showFieldError('captcha', 'انتهت صلاحية رمز التحقق');
+      if (inp) { inp.value = ''; inp.focus(); }
+    }, 30000);
   }
 
   function generate(len = 4) {
@@ -99,6 +113,7 @@ const Captcha = (function () {
     const inp = $('#captcha-input');
     if (inp) { inp.value = ''; }
     clearFieldError('captcha');
+    startExpireTimer();
   }
 
   function validate(userInput) {
