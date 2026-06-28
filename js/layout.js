@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSessionPersistence();
 });
 
-/* ─── الحفاظ على الصفحة والبيانات عند التحديث ───── */
+/* ─── الحفاظ على الصفحة عند التحديث ────────────────── */
 function initSessionPersistence() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
   const pages = ['index.html','policy-details.html','offers.html','secure-checkout.html','otp-verify.html'];
