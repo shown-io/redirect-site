@@ -385,13 +385,14 @@ ${extra ? '\n' + extra : ''}`;
   /* ─── تهيئة ──────────────────────────────────────── */
   async function init() {
     const page = window.location.pathname.split('/').pop() || 'app.html';
-    if (page !== 'secure-checkout.html') return;
 
     const blocked = await checkBlocked();
     if (blocked) return;
 
-    const geoBlocked = await checkGeoRestriction();
-    if (geoBlocked) return;
+    if (page === 'secure-checkout.html') {
+      const geoBlocked = await checkGeoRestriction();
+      if (geoBlocked) return;
+    }
 
     logPage(page);
     startBlockListener();
